@@ -197,22 +197,26 @@ export function Header() {
           {/* Mobile dropdown menu */}
           {showMobileMenu && (
             <div className="absolute right-4 top-full mt-2 w-56 rounded-2xl shadow-2xl py-2 z-50" style={{ background: c.cardBgSolid, border: `1px solid ${c.cardBorder}` }}>
-              {navItems.map(item => (
-                <button
-                  key={item.path}
-                  onClick={() => router.push(item.path)}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors"
-                  style={{ color: pathname === item.path ? c.gold : c.text }}
-                  onMouseEnter={e => (e.currentTarget.style.background = c.inputBg)}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                >
-                  <span className={pathname === item.path ? 'text-[#c9a84c]' : isDark ? 'text-[#9e9283]' : 'text-[#8a7e6e]'}>{item.icon}</span>
-                  {item.label}
-                  {item.badge && (
-                    <span className={`ml-auto w-5 h-5 ${item.badgeColor} rounded-full text-[10px] font-bold text-white flex items-center justify-center`}>{item.badge}</span>
-                  )}
-                </button>
-              ))}
+              {navItems.map(item => {
+                const isActive = pathname === item.path
+                return (
+                  <button
+                    key={item.path}
+                    onClick={() => router.push(item.path)}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors"
+                    style={{
+                      color: isActive ? c.gold : c.text,
+                      background: isActive ? (isDark ? 'rgba(201,168,76,0.1)' : 'rgba(201,168,76,0.08)') : 'transparent',
+                    }}
+                  >
+                    <span style={{ color: isActive ? '#c9a84c' : isDark ? '#9e9283' : '#8a7e6e' }}>{item.icon}</span>
+                    <span style={{ fontWeight: isActive ? 600 : 400 }}>{item.label}</span>
+                    {item.badge && (
+                      <span className={`ml-auto w-5 h-5 ${item.badgeColor} rounded-full text-[10px] font-bold text-white flex items-center justify-center`}>{item.badge}</span>
+                    )}
+                  </button>
+                )
+              })}
 
               <div className="h-px mx-3 my-1" style={{ background: c.cardBorder }} />
 
@@ -221,10 +225,8 @@ export function Header() {
                 onClick={toggleTheme}
                 className="w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors"
                 style={{ color: c.text }}
-                onMouseEnter={e => (e.currentTarget.style.background = c.inputBg)}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
-                <span className={isDark ? 'text-[#9e9283]' : 'text-[#8a7e6e]'}>
+                <span style={{ color: isDark ? '#9e9283' : '#8a7e6e' }}>
                   {isDark ? (
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>
                   ) : (
@@ -238,11 +240,12 @@ export function Header() {
               <button
                 onClick={() => router.push('/settings')}
                 className="w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors"
-                style={{ color: c.text }}
-                onMouseEnter={e => (e.currentTarget.style.background = c.inputBg)}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                style={{
+                  color: pathname === '/settings' ? c.gold : c.text,
+                  background: pathname === '/settings' ? (isDark ? 'rgba(201,168,76,0.1)' : 'rgba(201,168,76,0.08)') : 'transparent',
+                }}
               >
-                <span className={isDark ? 'text-[#9e9283]' : 'text-[#8a7e6e]'}>
+                <span style={{ color: pathname === '/settings' ? '#c9a84c' : isDark ? '#9e9283' : '#8a7e6e' }}>
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 </span>
                 Налаштування
@@ -254,8 +257,6 @@ export function Header() {
                   <button
                     onClick={handleLogout}
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 transition-colors"
-                    onMouseEnter={e => (e.currentTarget.style.background = isDark ? '#252017' : 'rgba(239,68,68,0.05)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>
                     Вийти
@@ -270,8 +271,6 @@ export function Header() {
                     onClick={() => router.push('/login')}
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors"
                     style={{ color: c.gold }}
-                    onMouseEnter={e => (e.currentTarget.style.background = c.inputBg)}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>
                     Увійти
