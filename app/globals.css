@@ -41,11 +41,15 @@
   outline-offset: 2px;
 }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 body {
   font-family: var(--font-body, 'DM Sans', system-ui, sans-serif);
   background: var(--color-cream);
   color: var(--color-text);
-  overflow-x: hidden;
 }
 
 /* Rich elegant background with texture */
