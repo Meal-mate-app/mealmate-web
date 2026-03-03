@@ -1469,7 +1469,7 @@ export default function Home() {
             </div>
 
             {/* Mobile bottom bar */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 glass-strong z-40" style={{ borderTop: `1px solid ${c.badgeBorder}` }}>
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] glass-strong z-40" style={{ borderTop: `1px solid ${c.badgeBorder}` }}>
               <div className="flex items-center gap-3">
                 <div className="flex-1">
                   <span className="text-sm font-medium" style={{ color: c.text }}>
