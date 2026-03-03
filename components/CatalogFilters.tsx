@@ -51,15 +51,7 @@ export function CatalogFilters({
   const { isDark } = useApp()
   const c = getThemeColors(isDark)
 
-  const selectStyle: React.CSSProperties = {
-    background: c.inputBg,
-    border: `1px solid ${c.inputBorder}`,
-    color: c.text,
-    borderRadius: '0.75rem',
-    padding: '0.5rem 0.75rem',
-    fontSize: '0.875rem',
-    outline: 'none',
-  }
+  const selectClass = `appearance-none cursor-pointer rounded-xl py-2 pl-3 pr-8 text-sm outline-none transition-colors`
 
   return (
     <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -75,24 +67,63 @@ export function CatalogFilters({
           onChange={(e) => onSearchChange(e.target.value)}
           className="w-full pl-9 pr-3 py-2 rounded-xl text-sm outline-none transition-colors"
           style={{
-            background: c.inputBg,
-            border: `1px solid ${c.inputBorder}`,
+            background: c.cardBgSolid,
+            border: `1px solid ${c.cardBorder}`,
             color: c.text,
           }}
         />
       </div>
 
-      <select value={cuisine} onChange={(e) => onCuisineChange(e.target.value)} style={selectStyle}>
-        {cuisines.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
+      {/* Cuisine */}
+      <div className="relative">
+        <select
+          value={cuisine}
+          onChange={(e) => onCuisineChange(e.target.value)}
+          className={selectClass}
+          style={{
+            background: c.cardBgSolid,
+            border: `1px solid ${c.cardBorder}`,
+            color: c.text,
+          }}
+        >
+          {cuisines.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+        <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: c.muted }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+      </div>
 
-      <select value={difficulty} onChange={(e) => onDifficultyChange(e.target.value)} style={selectStyle}>
-        {difficulties.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
+      {/* Difficulty */}
+      <div className="relative">
+        <select
+          value={difficulty}
+          onChange={(e) => onDifficultyChange(e.target.value)}
+          className={selectClass}
+          style={{
+            background: c.cardBgSolid,
+            border: `1px solid ${c.cardBorder}`,
+            color: c.text,
+          }}
+        >
+          {difficulties.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+        <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: c.muted }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+      </div>
 
-      <select value={sort} onChange={(e) => onSortChange(e.target.value)} style={selectStyle}>
-        {sortOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
+      {/* Sort */}
+      <div className="relative">
+        <select
+          value={sort}
+          onChange={(e) => onSortChange(e.target.value)}
+          className={selectClass}
+          style={{
+            background: c.cardBgSolid,
+            border: `1px solid ${c.cardBorder}`,
+            color: c.text,
+          }}
+        >
+          {sortOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+        <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: c.muted }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+      </div>
     </div>
   )
 }
