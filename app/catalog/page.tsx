@@ -33,11 +33,8 @@ export default function CatalogPage() {
   const limit = 12
   const debounceRef = useRef<ReturnType<typeof setTimeout>>()
 
-  // Debounce search
   useEffect(() => {
-    debounceRef.current = setTimeout(() => {
-      setDebouncedSearch(search)
-    }, 400)
+    debounceRef.current = setTimeout(() => setDebouncedSearch(search), 400)
     return () => clearTimeout(debounceRef.current)
   }, [search])
 
@@ -65,7 +62,7 @@ export default function CatalogPage() {
       setPage(pageNum)
     } catch (err) {
       console.error('Failed to load catalog:', err)
-      setError('Не вдалося завантажити рецепти. Спробуйте пізніше.')
+      setError('Не вдалося завантажити рецепти')
       if (!append) setRecipes([])
     } finally {
       setLoading(false)
@@ -88,13 +85,23 @@ export default function CatalogPage() {
   return (
     <div className="min-h-screen" style={{ background: c.pageBg }}>
       <Header />
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        <h1 className="text-3xl sm:text-4xl font-serif font-bold mb-2" style={{ color: c.text }}>
-          Каталог рецептів
-        </h1>
-        <p className="text-sm mb-6" style={{ color: c.muted }}>
-          Готові рецепти від шеф-кухарів з усього світу
-        </p>
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-8">
+        {/* Title row */}
+        <div className="flex items-baseline justify-between mb-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold" style={{ color: c.text }}>
+              Каталог рецептів
+            </h1>
+            <p className="text-xs mt-0.5" style={{ color: c.muted }}>
+              Готові рецепти від шеф-кухарів з усього світу
+            </p>
+          </div>
+          {!loading && !error && recipes.length > 0 && (
+            <span className="text-xs" style={{ color: c.muted }}>
+              {total} {total === 1 ? 'рецепт' : total < 5 ? 'рецепти' : 'рецептів'}
+            </span>
+          )}
+        </div>
 
         <RecipeOfTheDayBanner recipe={recipeOfTheDay} />
 
@@ -110,32 +117,32 @@ export default function CatalogPage() {
         />
 
         {error ? (
-          <div className="text-center py-16 rounded-2xl" style={{ background: c.cardBg, border: `1px solid ${c.cardBorder}` }}>
-            <div className="text-4xl mb-3">{'⚠️'}</div>
-            <p className="text-sm font-medium" style={{ color: c.text }}>{error}</p>
+          <div className="text-center py-10 rounded-2xl" style={{ background: c.cardBg, border: `1px solid ${c.cardBorder}` }}>
+            <div className="text-3xl mb-2">{'\u26A0\uFE0F'}</div>
+            <p className="text-sm" style={{ color: c.text }}>{error}</p>
             <button
               onClick={() => fetchRecipes(1, false)}
-              className="mt-4 px-5 py-2 rounded-xl text-sm font-semibold transition-all hover:scale-105"
+              className="mt-3 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105"
               style={{ background: c.btnBg, color: c.btnText }}
             >
               Спробувати знову
             </button>
           </div>
         ) : loading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-8 h-8 border-2 rounded-full animate-spin" style={{ borderColor: `${c.gold} transparent ${c.gold} transparent` }} />
+          <div className="flex justify-center py-16">
+            <div className="w-7 h-7 border-2 rounded-full animate-spin" style={{ borderColor: `${c.gold} transparent ${c.gold} transparent` }} />
           </div>
         ) : recipes.length === 0 ? (
-          <div className="text-center py-16 rounded-2xl" style={{ background: c.cardBg, border: `1px solid ${c.cardBorder}` }}>
-            <div className="text-5xl mb-3">{'\u{1F373}'}</div>
-            <p className="text-lg font-medium" style={{ color: c.text }}>Рецептів не знайдено</p>
-            <p className="text-sm mt-1" style={{ color: c.muted }}>
-              {debouncedSearch ? `Нічого не знайдено за запитом "${debouncedSearch}"` : 'Спробуйте змінити фільтри'}
+          <div className="text-center py-10 rounded-2xl" style={{ background: c.cardBg, border: `1px solid ${c.cardBorder}` }}>
+            <div className="text-4xl mb-2">{'\u{1F373}'}</div>
+            <p className="text-sm font-medium" style={{ color: c.text }}>Рецептів не знайдено</p>
+            <p className="text-xs mt-1" style={{ color: c.muted }}>
+              {debouncedSearch ? `За запитом "${debouncedSearch}" нічого не знайдено` : 'Спробуйте змінити фільтри'}
             </p>
             {(debouncedSearch || cuisine || difficulty) && (
               <button
                 onClick={() => { setSearch(''); setCuisine(''); setDifficulty(''); setSort('newest') }}
-                className="mt-4 px-5 py-2 rounded-xl text-sm font-semibold transition-all hover:scale-105"
+                className="mt-3 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105"
                 style={{ background: c.badgeBg, color: c.gold, border: `1px solid ${c.badgeBorder}` }}
               >
                 Скинути фільтри
@@ -144,9 +151,6 @@ export default function CatalogPage() {
           </div>
         ) : (
           <>
-            <p className="text-xs mb-4" style={{ color: c.muted }}>
-              Знайдено: {total} {total === 1 ? 'рецепт' : total < 5 ? 'рецепти' : 'рецептів'}
-            </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {recipes.map((recipe) => (
                 <CatalogRecipeCard key={recipe.id} recipe={recipe} />

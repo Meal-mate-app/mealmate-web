@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useRef, useEffect } from 'react'
 import { useApp } from '@/contexts/AppContext'
 import { getThemeColors } from '@/lib/theme'
 
@@ -42,6 +43,74 @@ const sortOptions = [
   { value: 'fastest', label: 'Найшвидші' },
 ]
 
+interface DropdownProps {
+  options: { value: string; label: string }[]
+  value: string
+  onChange: (v: string) => void
+  isDark: boolean
+}
+
+function Dropdown({ options, value, onChange, isDark }: DropdownProps) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const c = getThemeColors(isDark)
+  const selected = options.find((o) => o.value === value) || options[0]
+
+  useEffect(() => {
+    if (!open) return
+    const handle = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handle)
+    return () => document.removeEventListener('mousedown', handle)
+  }, [open])
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 rounded-xl py-2 px-3 text-sm transition-all whitespace-nowrap"
+        style={{
+          background: c.cardBgSolid,
+          border: `1px solid ${value ? c.gold + '40' : c.cardBorder}`,
+          color: value ? c.gold : c.text,
+        }}
+      >
+        <span>{selected.label}</span>
+        <svg className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} style={{ color: c.muted }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+      {open && (
+        <div
+          className="absolute top-full mt-1 left-0 min-w-full w-max rounded-xl py-1 z-50 shadow-xl max-h-64 overflow-y-auto"
+          style={{ background: c.cardBgSolid, border: `1px solid ${c.cardBorder}` }}
+        >
+          {options.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => { onChange(opt.value); setOpen(false) }}
+              className="w-full text-left px-3 py-2 text-sm transition-colors"
+              style={{
+                color: opt.value === value ? c.gold : c.text,
+                background: opt.value === value ? (isDark ? 'rgba(212,168,67,0.1)' : 'rgba(184,134,11,0.06)') : 'transparent',
+              }}
+              onMouseEnter={(e) => {
+                if (opt.value !== value) e.currentTarget.style.background = isDark ? '#1a1610' : '#fdf8f0'
+              }}
+              onMouseLeave={(e) => {
+                if (opt.value !== value) e.currentTarget.style.background = 'transparent'
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function CatalogFilters({
   search, onSearchChange,
   cuisine, onCuisineChange,
@@ -50,8 +119,6 @@ export function CatalogFilters({
 }: CatalogFiltersProps) {
   const { isDark } = useApp()
   const c = getThemeColors(isDark)
-
-  const selectClass = `appearance-none cursor-pointer rounded-xl py-2 pl-3 pr-8 text-sm outline-none transition-colors`
 
   return (
     <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -74,55 +141,10 @@ export function CatalogFilters({
         />
       </div>
 
-      {/* Cuisine */}
-      <div className="relative">
-        <select
-          value={cuisine}
-          onChange={(e) => onCuisineChange(e.target.value)}
-          className={selectClass}
-          style={{
-            background: c.cardBgSolid,
-            border: `1px solid ${c.cardBorder}`,
-            color: c.text,
-          }}
-        >
-          {cuisines.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
-        <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: c.muted }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
-      </div>
-
-      {/* Difficulty */}
-      <div className="relative">
-        <select
-          value={difficulty}
-          onChange={(e) => onDifficultyChange(e.target.value)}
-          className={selectClass}
-          style={{
-            background: c.cardBgSolid,
-            border: `1px solid ${c.cardBorder}`,
-            color: c.text,
-          }}
-        >
-          {difficulties.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
-        <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: c.muted }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
-      </div>
-
-      {/* Sort */}
-      <div className="relative">
-        <select
-          value={sort}
-          onChange={(e) => onSortChange(e.target.value)}
-          className={selectClass}
-          style={{
-            background: c.cardBgSolid,
-            border: `1px solid ${c.cardBorder}`,
-            color: c.text,
-          }}
-        >
-          {sortOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
-        <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none" style={{ color: c.muted }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+      <div className="flex gap-2 flex-wrap">
+        <Dropdown options={cuisines} value={cuisine} onChange={onCuisineChange} isDark={isDark} />
+        <Dropdown options={difficulties} value={difficulty} onChange={onDifficultyChange} isDark={isDark} />
+        <Dropdown options={sortOptions} value={sort} onChange={onSortChange} isDark={isDark} />
       </div>
     </div>
   )
