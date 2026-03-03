@@ -366,12 +366,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setCoinBalance(data.coins)
       setPlanHistory(data.plans)
       setOrderHistory(data.orders)
-      // Claim daily free coins + load subscription (parallel)
+      // Claim daily free coins
       api.claimDailyCoins().then(result => {
         if (result.claimed) setCoinBalance(result.coins)
-      }).catch(() => {})
-      api.getSubscription().then(sub => {
-        if (sub) setSubscriptionStatus(sub.status)
       }).catch(() => {})
       if (data.settings) {
         const settingsData = data.settings

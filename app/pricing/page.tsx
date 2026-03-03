@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useApp } from '@/contexts/AppContext'
 import { getThemeColors } from '@/lib/theme'
@@ -16,75 +16,56 @@ export default function PricingPage() {
   const c = getThemeColors(isDark)
 
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
+  const formRef = useRef<HTMLFormElement>(null)
 
-  const handleCheckout = async (priceType: string) => {
+  const handleCheckout = async (packageId: string) => {
     try {
-      setLoadingPlan(priceType)
-      const { url } = await api.createCheckoutSession(priceType as api.PriceType)
-      if (url) window.location.href = url
+      setLoadingPlan(packageId)
+      const formData = await api.createPayment(packageId)
+
+      // Create and submit WayForPay form
+      const form = document.createElement('form')
+      form.method = 'POST'
+      form.action = 'https://secure.wayforpay.com/pay'
+      form.acceptCharset = 'utf-8'
+
+      for (const [key, value] of Object.entries(formData)) {
+        if (Array.isArray(value)) {
+          value.forEach((v) => {
+            const input = document.createElement('input')
+            input.type = 'hidden'
+            input.name = `${key}[]`
+            input.value = String(v)
+            form.appendChild(input)
+          })
+        } else {
+          const input = document.createElement('input')
+          input.type = 'hidden'
+          input.name = key
+          input.value = String(value)
+          form.appendChild(input)
+        }
+      }
+
+      document.body.appendChild(form)
+      form.submit()
     } catch (err) {
       console.error('Checkout error:', err)
-    } finally {
       setLoadingPlan(null)
     }
   }
 
-  const subscriptionPlans = [
-    {
-      id: 'free',
-      name: 'Free',
-      price: '$0',
-      period: '',
-      features: [
-        '10 монет при реєстрації',
-        '2 монети/день (щоденне нарахування)',
-        'Реклама в додатку',
-      ],
-      isCurrent: true,
-      isFeatured: false,
-    },
-    {
-      id: 'pro_monthly',
-      name: 'Pro',
-      price: '$4.99',
-      period: '/місяць',
-      features: [
-        '100 монет/місяць',
-        'Без реклами',
-        'Пріоритетна генерація',
-        'Експорт у PDF',
-      ],
-      isCurrent: false,
-      isFeatured: true,
-    },
-    {
-      id: 'pro_yearly',
-      name: 'Pro Yearly',
-      price: '$39.99',
-      period: '/рік',
-      features: [
-        '100 монет/місяць',
-        'Без реклами',
-        'Пріоритетна генерація',
-        'Експорт у PDF',
-        '~33% знижка',
-      ],
-      isCurrent: false,
-      isFeatured: false,
-    },
-  ]
-
   const coinPackages = [
-    { id: 'coins_15', coins: 15, price: '$0.99' },
-    { id: 'coins_50', coins: 50, price: '$2.99' },
-    { id: 'coins_150', coins: 150, price: '$7.99' },
+    { id: 'coins_15', coins: 15, price: '29 ₴', perCoin: '~1.9 ₴' },
+    { id: 'coins_50', coins: 50, price: '79 ₴', perCoin: '~1.6 ₴', popular: true },
+    { id: 'coins_150', coins: 150, price: '199 ₴', perCoin: '~1.3 ₴' },
   ]
 
   return (
     <div style={{ minHeight: '100vh', background: c.pageBg }}>
       <Header />
 
-      <main style={{ maxWidth: '1100px', margin: '0 auto', padding: '40px 24px 80px' }}>
+      <main style={{ maxWidth: '900px', margin: '0 auto', padding: '40px 24px 80px' }}>
         {/* Success message */}
         {success && (
           <div
@@ -104,7 +85,7 @@ export default function PricingPage() {
               <polyline points="22 4 12 14.01 9 11.01" />
             </svg>
             <span style={{ color: c.successColor, fontWeight: 600, fontSize: '15px' }}>
-              Оплата пройшла успішно! Дякуємо за покупку.
+              Оплата пройшла успішно! Монети додано на ваш рахунок.
             </span>
           </div>
         )}
@@ -146,10 +127,10 @@ export default function PricingPage() {
               letterSpacing: '0.02em',
             }}
           >
-            Тарифи та монети
+            Поповнити монети
           </h1>
           <p style={{ color: c.textSecondary, fontSize: '17px', maxWidth: '520px', margin: '0 auto' }}>
-            Оберіть план, що підходить вам. Монети використовуються для генерації рецептів та планів харчування.
+            Монети використовуються для генерації рецептів (2 монети) та планів харчування (10 монет)
           </p>
           {coinBalance !== null && (
             <div
@@ -169,41 +150,44 @@ export default function PricingPage() {
                 <text x="12" y="16" textAnchor="middle" fontSize="12" fontWeight="bold" fill={c.gold}>$</text>
               </svg>
               <span style={{ color: c.gold, fontWeight: 700, fontSize: '16px' }}>
-                {coinBalance} монет
+                Ваш баланс: {coinBalance} монет
               </span>
             </div>
           )}
         </div>
 
-        {/* Subscription plans */}
+        {/* Coin packages */}
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
             gap: '24px',
-            marginBottom: '64px',
+            maxWidth: '820px',
+            margin: '0 auto 48px',
           }}
         >
-          {subscriptionPlans.map((plan) => (
+          {coinPackages.map((pkg) => (
             <div
-              key={plan.id}
+              key={pkg.id}
               style={{
                 background: c.cardBg,
-                border: plan.isFeatured
+                border: pkg.popular
                   ? `2px solid ${c.gold}`
                   : `1px solid ${c.cardBorder}`,
                 borderRadius: '16px',
                 padding: '32px 28px',
-                boxShadow: plan.isFeatured
+                boxShadow: pkg.popular
                   ? `${c.cardShadow}, 0 0 24px ${isDark ? 'rgba(212,168,67,0.15)' : 'rgba(184,134,11,0.1)'}`
                   : c.cardShadow,
-                position: 'relative',
+                textAlign: 'center',
                 display: 'flex',
                 flexDirection: 'column',
+                alignItems: 'center',
+                position: 'relative',
               }}
             >
-              {/* Featured badge */}
-              {plan.isFeatured && (
+              {/* Popular badge */}
+              {pkg.popular && (
                 <div
                   style={{
                     position: 'absolute',
@@ -220,206 +204,10 @@ export default function PricingPage() {
                     textTransform: 'uppercase',
                   }}
                 >
-                  Популярний
+                  Вигідно
                 </div>
               )}
 
-              {/* Current plan badge */}
-              {plan.isCurrent && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '-13px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    background: c.badgeBg,
-                    color: c.gold,
-                    padding: '4px 20px',
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    border: `1px solid ${c.badgeBorder}`,
-                    letterSpacing: '0.05em',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Поточний план
-                </div>
-              )}
-
-              {/* Plan name */}
-              <h3
-                style={{
-                  fontSize: '22px',
-                  fontWeight: 700,
-                  color: plan.isFeatured ? c.gold : c.text,
-                  marginBottom: '8px',
-                  marginTop: plan.isFeatured || plan.isCurrent ? '8px' : '0',
-                }}
-              >
-                {plan.name}
-              </h3>
-
-              {/* Price */}
-              <div style={{ marginBottom: '24px' }}>
-                <span
-                  style={{
-                    fontSize: '40px',
-                    fontWeight: 800,
-                    color: c.text,
-                    letterSpacing: '-0.02em',
-                  }}
-                >
-                  {plan.price}
-                </span>
-                {plan.period && (
-                  <span style={{ color: c.muted, fontSize: '16px', marginLeft: '4px' }}>
-                    {plan.period}
-                  </span>
-                )}
-              </div>
-
-              {/* Features */}
-              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 28px', flex: 1 }}>
-                {plan.features.map((feature, idx) => (
-                  <li
-                    key={idx}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      padding: '8px 0',
-                      color: c.textSecondary,
-                      fontSize: '15px',
-                    }}
-                  >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke={c.gold}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-
-              {/* Button */}
-              {plan.isCurrent ? (
-                <div
-                  style={{
-                    textAlign: 'center',
-                    padding: '12px 24px',
-                    borderRadius: '12px',
-                    background: c.badgeBg,
-                    color: c.muted,
-                    fontSize: '15px',
-                    fontWeight: 600,
-                    border: `1px solid ${c.badgeBorder}`,
-                  }}
-                >
-                  Ваш поточний план
-                </div>
-              ) : (
-                <button
-                  onClick={() => handleCheckout(plan.id)}
-                  disabled={loadingPlan === plan.id}
-                  style={{
-                    width: '100%',
-                    padding: '14px 24px',
-                    borderRadius: '12px',
-                    background: plan.isFeatured ? c.btnBg : 'transparent',
-                    color: plan.isFeatured ? c.btnText : c.gold,
-                    border: plan.isFeatured ? 'none' : `1.5px solid ${c.gold}`,
-                    fontSize: '15px',
-                    fontWeight: 700,
-                    cursor: loadingPlan === plan.id ? 'wait' : 'pointer',
-                    boxShadow: plan.isFeatured ? c.btnShadow : 'none',
-                    transition: 'all 0.2s ease',
-                    opacity: loadingPlan === plan.id ? 0.7 : 1,
-                  }}
-                  onMouseEnter={(e) => {
-                    if (plan.isFeatured) {
-                      e.currentTarget.style.transform = 'translateY(-1px)'
-                      e.currentTarget.style.boxShadow = `0 6px 24px ${isDark ? 'rgba(212,168,67,0.45)' : 'rgba(184,134,11,0.25)'}`
-                    } else {
-                      e.currentTarget.style.background = c.badgeBg
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (plan.isFeatured) {
-                      e.currentTarget.style.transform = 'translateY(0)'
-                      e.currentTarget.style.boxShadow = c.btnShadow
-                    } else {
-                      e.currentTarget.style.background = 'transparent'
-                    }
-                  }}
-                >
-                  {loadingPlan === plan.id ? 'Завантаження...' : 'Купити'}
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Divider */}
-        <div
-          style={{
-            height: '1px',
-            background: `linear-gradient(90deg, transparent, ${c.goldLine}, transparent)`,
-            marginBottom: '48px',
-          }}
-        />
-
-        {/* Coin packages section */}
-        <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-          <h2
-            style={{
-              fontSize: '28px',
-              fontWeight: 700,
-              color: c.text,
-              marginBottom: '8px',
-              fontFamily: 'serif',
-              letterSpacing: '0.02em',
-            }}
-          >
-            Пакети монет
-          </h2>
-          <p style={{ color: c.textSecondary, fontSize: '15px' }}>
-            Придбайте додаткові монети окремо
-          </p>
-        </div>
-
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: '20px',
-            maxWidth: '780px',
-            margin: '0 auto 48px',
-          }}
-        >
-          {coinPackages.map((pkg) => (
-            <div
-              key={pkg.id}
-              style={{
-                background: c.cardBg,
-                border: `1px solid ${c.cardBorder}`,
-                borderRadius: '16px',
-                padding: '28px 24px',
-                boxShadow: c.cardShadow,
-                textAlign: 'center',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-              }}
-            >
               {/* Coin icon */}
               <div
                 style={{
@@ -432,6 +220,7 @@ export default function PricingPage() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginBottom: '16px',
+                  marginTop: pkg.popular ? '8px' : '0',
                 }}
               >
                 <svg width="28" height="28" viewBox="0 0 24 24" fill={c.gold}>
@@ -443,7 +232,7 @@ export default function PricingPage() {
               {/* Coins count */}
               <div
                 style={{
-                  fontSize: '32px',
+                  fontSize: '36px',
                   fontWeight: 800,
                   color: c.gold,
                   marginBottom: '4px',
@@ -456,7 +245,7 @@ export default function PricingPage() {
                 style={{
                   fontSize: '14px',
                   color: c.muted,
-                  marginBottom: '20px',
+                  marginBottom: '8px',
                   textTransform: 'uppercase',
                   letterSpacing: '0.08em',
                   fontWeight: 600,
@@ -465,13 +254,24 @@ export default function PricingPage() {
                 монет
               </div>
 
+              {/* Per coin price */}
+              <div
+                style={{
+                  fontSize: '13px',
+                  color: c.textSecondary,
+                  marginBottom: '20px',
+                }}
+              >
+                {pkg.perCoin} за монету
+              </div>
+
               {/* Price */}
               <div
                 style={{
-                  fontSize: '20px',
+                  fontSize: '28px',
                   fontWeight: 700,
                   color: c.text,
-                  marginBottom: '20px',
+                  marginBottom: '24px',
                 }}
               >
                 {pkg.price}
@@ -483,22 +283,33 @@ export default function PricingPage() {
                 disabled={loadingPlan === pkg.id}
                 style={{
                   width: '100%',
-                  padding: '12px 20px',
-                  borderRadius: '10px',
-                  background: 'transparent',
-                  color: c.gold,
-                  border: `1.5px solid ${c.gold}`,
-                  fontSize: '14px',
+                  padding: '14px 24px',
+                  borderRadius: '12px',
+                  background: pkg.popular ? c.btnBg : 'transparent',
+                  color: pkg.popular ? c.btnText : c.gold,
+                  border: pkg.popular ? 'none' : `1.5px solid ${c.gold}`,
+                  fontSize: '15px',
                   fontWeight: 700,
                   cursor: loadingPlan === pkg.id ? 'wait' : 'pointer',
+                  boxShadow: pkg.popular ? c.btnShadow : 'none',
                   transition: 'all 0.2s ease',
                   opacity: loadingPlan === pkg.id ? 0.7 : 1,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = c.badgeBg
+                  if (pkg.popular) {
+                    e.currentTarget.style.transform = 'translateY(-1px)'
+                    e.currentTarget.style.boxShadow = `0 6px 24px ${isDark ? 'rgba(212,168,67,0.45)' : 'rgba(184,134,11,0.25)'}`
+                  } else {
+                    e.currentTarget.style.background = c.badgeBg
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent'
+                  if (pkg.popular) {
+                    e.currentTarget.style.transform = 'translateY(0)'
+                    e.currentTarget.style.boxShadow = c.btnShadow
+                  } else {
+                    e.currentTarget.style.background = 'transparent'
+                  }
                 }}
               >
                 {loadingPlan === pkg.id ? 'Завантаження...' : 'Купити'}
@@ -507,31 +318,13 @@ export default function PricingPage() {
           ))}
         </div>
 
-        {/* Manage subscription link */}
+        {/* Payment info */}
         <div style={{ textAlign: 'center' }}>
-          <p style={{ color: c.muted, fontSize: '14px', marginBottom: '8px' }}>
-            Вже маєте Pro підписку?
+          <p style={{ color: c.muted, fontSize: '13px', lineHeight: '1.6' }}>
+            Оплата через WayForPay. Приймаємо Visa, Mastercard, Apple Pay, Google Pay.
+            <br />
+            Монети нараховуються автоматично після оплати.
           </p>
-          <a
-            href="/settings"
-            style={{
-              color: c.gold,
-              fontSize: '14px',
-              fontWeight: 600,
-              textDecoration: 'none',
-              borderBottom: `1px solid ${isDark ? 'rgba(212,168,67,0.3)' : 'rgba(184,134,11,0.3)'}`,
-              paddingBottom: '2px',
-              transition: 'border-color 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderBottomColor = c.gold
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderBottomColor = isDark ? 'rgba(212,168,67,0.3)' : 'rgba(184,134,11,0.3)'
-            }}
-          >
-            Керувати підпискою
-          </a>
         </div>
       </main>
     </div>

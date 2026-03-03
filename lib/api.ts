@@ -578,30 +578,17 @@ export async function claimDailyCoins(): Promise<{ claimed: boolean; coins: numb
   return apiFetch('/auth/claim-daily-coins', { method: 'POST' })
 }
 
-// --- Payment / Subscription ---
+// --- Payment (WayForPay) ---
 
-export type PriceType = 'pro_monthly' | 'pro_yearly' | 'coins_15' | 'coins_50' | 'coins_150'
-
-export async function createCheckoutSession(priceType: PriceType): Promise<{ url: string }> {
-  return apiFetch('/payment/create-checkout-session', {
+export async function createPayment(packageId: string): Promise<Record<string, any>> {
+  return apiFetch('/payment/create', {
     method: 'POST',
-    body: JSON.stringify({ priceType }),
+    body: JSON.stringify({ packageId }),
   })
 }
 
-export async function createCustomerPortal(): Promise<{ url: string }> {
-  return apiFetch('/payment/customer-portal', { method: 'POST' })
-}
-
-export async function getSubscription(): Promise<{
-  uuid: string
-  userId: string
-  status: string
-  stripePriceId: string
-  currentPeriodEnd: string
-  cancelAtPeriodEnd: boolean
-} | null> {
-  return apiFetch('/payment/subscription')
+export async function getPackages(): Promise<Array<{ id: string; coins: number; priceUAH: number; name: string }>> {
+  return apiFetch('/payment/packages')
 }
 
 // --- Check if logged in ---
