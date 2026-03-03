@@ -176,6 +176,9 @@ function mapRecipe(raw: any): Recipe {
     tips: raw.tips,
     nutrition: raw.nutrition || { calories: 0, protein: 0, carbs: 0, fat: 0 },
     imagePrompt: raw.imagePrompt,
+    avgRating: raw.avgRating != null ? Number(raw.avgRating) : undefined,
+    ratingCount: raw.ratingCount != null ? Number(raw.ratingCount) : undefined,
+    isPublic: raw.isPublic,
   }
 }
 
@@ -277,6 +280,67 @@ export async function batchDeleteRecipes(ids: string[]): Promise<void> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ids }),
   })
+}
+
+// --- Catalog ---
+
+export interface CatalogParams {
+  search?: string
+  cuisine?: string
+  difficulty?: string
+  tags?: string
+  maxCookTime?: number
+  sort?: string
+  page?: number
+  limit?: number
+}
+
+export interface CatalogResponse {
+  items: Recipe[]
+  total: number
+  page: number
+  limit: number
+}
+
+export async function getCatalog(params: CatalogParams = {}): Promise<CatalogResponse> {
+  const searchParams = new URLSearchParams()
+  if (params.search) searchParams.set('search', params.search)
+  if (params.cuisine) searchParams.set('cuisine', params.cuisine)
+  if (params.difficulty) searchParams.set('difficulty', params.difficulty)
+  if (params.tags) searchParams.set('tags', params.tags)
+  if (params.maxCookTime) searchParams.set('maxCookTime', String(params.maxCookTime))
+  if (params.sort) searchParams.set('sort', params.sort)
+  if (params.page) searchParams.set('page', String(params.page))
+  if (params.limit) searchParams.set('limit', String(params.limit))
+  const qs = searchParams.toString()
+  const raw = await apiFetch<any>(`/catalog${qs ? `?${qs}` : ''}`, {}, true)
+  return {
+    items: (raw.items || []).map(mapRecipe),
+    total: raw.total ?? 0,
+    page: raw.page ?? 1,
+    limit: raw.limit ?? 12,
+  }
+}
+
+export async function getCatalogRecipe(uuid: string): Promise<Recipe> {
+  const raw = await apiFetch(`/catalog/${uuid}`, {}, true)
+  return mapRecipe(raw)
+}
+
+export async function getRecipeOfTheDay(): Promise<Recipe | null> {
+  const raw = await apiFetch(`/catalog/recipe-of-the-day`, {}, true)
+  return raw ? mapRecipe(raw) : null
+}
+
+export async function rateRecipe(uuid: string, value: number): Promise<{ avgRating: number; ratingCount: number; userRating: number }> {
+  return apiFetch(`/catalog/${uuid}/rate`, {
+    method: 'POST',
+    body: JSON.stringify({ value }),
+  })
+}
+
+export async function getMyRating(uuid: string): Promise<{ value: number } | null> {
+  return apiFetch(`/catalog/${uuid}/my-rating`)
 }
 
 // --- Meal Plans ---

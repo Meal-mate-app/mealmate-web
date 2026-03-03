@@ -29,6 +29,10 @@ export interface Recipe {
   tips?: string[]
   nutrition: NutritionInfo
   imagePrompt?: string
+  // Catalog fields
+  avgRating?: number
+  ratingCount?: number
+  isPublic?: boolean
 }
 
 // Meal Plan types
