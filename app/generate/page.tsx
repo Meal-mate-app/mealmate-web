@@ -102,6 +102,7 @@ export default function GeneratePage() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [pantryStaples, setPantryStaples] = useState<Set<string>>(new Set(DEFAULT_PANTRY))
   const [peopleCount, setPeopleCount] = useState(2)
+  const [dishDescription, setDishDescription] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [recipe, setRecipe] = useState<Recipe | null>(null)
   const [initDone, setInitDone] = useState(false)
@@ -158,6 +159,7 @@ export default function GeneratePage() {
       const newRecipe = await api.generateRecipe({
         ingredients: allIngredients,
         peopleCount,
+        specificRequest: dishDescription.trim() || undefined,
         allergies: settings.allergies,
         dietaryRestrictions: settings.dietaryRestrictions,
         dislikedIngredients: [...excludedStaples, ...settings.dislikedIngredients],
@@ -397,6 +399,25 @@ export default function GeneratePage() {
               ))}
             </div>
 
+            {/* Dish description — mobile only */}
+            <div className="lg:hidden mb-4">
+              <p className="text-xs font-medium mb-1.5" style={{ color: c.dimmed }}>Опишіть страву (необов'язково)</p>
+              <textarea
+                value={dishDescription}
+                onChange={e => setDishDescription(e.target.value)}
+                placeholder="Наприклад: щось легке на вечерю, або паста з кремовим соусом..."
+                rows={2}
+                className="w-full px-3 py-2 rounded-xl text-sm outline-none transition-colors resize-none"
+                style={{
+                  background: c.inputBg,
+                  border: `1px solid ${c.inputBorder}`,
+                  color: c.text,
+                }}
+                onFocus={e => (e.currentTarget.style.borderColor = c.inputFocusBorder)}
+                onBlur={e => (e.currentTarget.style.borderColor = c.inputBorder)}
+              />
+            </div>
+
             {/* Custom input */}
             <div className="flex gap-3 mb-6">
               <input
@@ -515,6 +536,25 @@ export default function GeneratePage() {
                   <p className="text-sm font-medium" style={{ color: c.dimmed }}>Обери продукти зліва</p>
                 </div>
               )}
+
+              {/* Dish description */}
+              <div className="pt-4 mb-4" style={{ borderTop: `1px solid ${c.cardBorder}` }}>
+                <p className="text-xs font-medium mb-2 uppercase tracking-wider" style={{ color: c.dimmed }}>Опишіть страву</p>
+                <textarea
+                  value={dishDescription}
+                  onChange={e => setDishDescription(e.target.value)}
+                  placeholder="Наприклад: щось легке на вечерю, або паста з кремовим соусом..."
+                  rows={3}
+                  className="w-full px-3 py-2 rounded-xl text-sm outline-none transition-colors resize-none"
+                  style={{
+                    background: c.inputBg,
+                    border: `1px solid ${c.inputBorder}`,
+                    color: c.text,
+                  }}
+                  onFocus={e => (e.currentTarget.style.borderColor = c.inputFocusBorder)}
+                  onBlur={e => (e.currentTarget.style.borderColor = c.inputBorder)}
+                />
+              </div>
 
               {/* Pantry staples */}
               <div className="pt-4 mb-4" style={{ borderTop: `1px solid ${c.cardBorder}` }}>

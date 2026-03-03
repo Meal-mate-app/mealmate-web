@@ -85,25 +85,15 @@ export default function CatalogPage() {
   return (
     <div className="min-h-screen" style={{ background: c.pageBg }}>
       <Header />
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-8">
-        {/* Title row */}
-        <div className="flex items-baseline justify-between mb-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-serif font-bold" style={{ color: c.text }}>
-              Каталог рецептів
-            </h1>
-            <p className="text-xs mt-0.5" style={{ color: c.muted }}>
-              Готові рецепти від шеф-кухарів з усього світу
-            </p>
-          </div>
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-2 pb-8">
+        <div className="flex items-baseline gap-2 mb-2">
+          <h1 className="text-lg sm:text-xl font-bold" style={{ color: c.text, fontFamily: 'var(--font-body), sans-serif' }}>
+            Каталог рецептів
+          </h1>
           {!loading && !error && recipes.length > 0 && (
-            <span className="text-xs" style={{ color: c.muted }}>
-              {total} {total === 1 ? 'рецепт' : total < 5 ? 'рецепти' : 'рецептів'}
-            </span>
+            <span className="text-xs" style={{ color: c.muted }}>({total})</span>
           )}
         </div>
-
-        <RecipeOfTheDayBanner recipe={recipeOfTheDay} />
 
         <CatalogFilters
           search={search}
@@ -116,8 +106,10 @@ export default function CatalogPage() {
           onSortChange={setSort}
         />
 
+        <RecipeOfTheDayBanner recipe={recipeOfTheDay} />
+
         {error ? (
-          <div className="text-center py-10 rounded-2xl" style={{ background: c.cardBg, border: `1px solid ${c.cardBorder}` }}>
+          <div className="text-center py-8 rounded-2xl" style={{ background: c.cardBg, border: `1px solid ${c.cardBorder}` }}>
             <div className="text-3xl mb-2">{'\u26A0\uFE0F'}</div>
             <p className="text-sm" style={{ color: c.text }}>{error}</p>
             <button
@@ -129,11 +121,11 @@ export default function CatalogPage() {
             </button>
           </div>
         ) : loading ? (
-          <div className="flex justify-center py-16">
+          <div className="flex justify-center py-12">
             <div className="w-7 h-7 border-2 rounded-full animate-spin" style={{ borderColor: `${c.gold} transparent ${c.gold} transparent` }} />
           </div>
         ) : recipes.length === 0 ? (
-          <div className="text-center py-10 rounded-2xl" style={{ background: c.cardBg, border: `1px solid ${c.cardBorder}` }}>
+          <div className="text-center py-8 rounded-2xl" style={{ background: c.cardBg, border: `1px solid ${c.cardBorder}` }}>
             <div className="text-4xl mb-2">{'\u{1F373}'}</div>
             <p className="text-sm font-medium" style={{ color: c.text }}>Рецептів не знайдено</p>
             <p className="text-xs mt-1" style={{ color: c.muted }}>
