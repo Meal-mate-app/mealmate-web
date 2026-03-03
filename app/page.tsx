@@ -286,6 +286,7 @@ export default function Home() {
   const c = getThemeColors(isDark)
   const [peopleCount] = useState(2)
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([])
+  const [recipeRequest, setRecipeRequest] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [recipe, setRecipe] = useState<Recipe | null>(null)
   const [mealPlan, setMealPlan] = useState<WeekPlan | null>(null)
@@ -955,6 +956,7 @@ export default function Home() {
         allergies: settings.allergies,
         dietaryRestrictions: settings.dietaryRestrictions,
         dislikedIngredients: [...excludedStaples, ...settings.dislikedIngredients],
+        specificRequest: recipeRequest.trim() || undefined,
         calorieGoal: settings.dailyCalorieGoal || undefined,
         proteinGoal: settings.dailyProteinGoal || undefined,
         carbsGoal: settings.dailyCarbsGoal || undefined,
@@ -962,6 +964,7 @@ export default function Home() {
       })
       setRecipe(newRecipe)
       addToHistory(newRecipe)
+      setRecipeRequest('')
       setMode('recipe-result')
     } catch {
       showToast('Не вдалось згенерувати рецепт. Спробуйте ще раз.', 'error')
@@ -1636,6 +1639,25 @@ export default function Home() {
                         </button>
                       ))}
                     </div>
+                  </div>
+
+                  {/* Recipe request input */}
+                  <div className="mb-3">
+                    <input
+                      type="text"
+                      value={recipeRequest}
+                      onChange={(e) => setRecipeRequest(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && selectedIngredients.length > 0 && !isLoading) {
+                          generateRecipe()
+                        }
+                      }}
+                      placeholder="Що хочеш приготувати? (напр. суп, щось легке на вечерю)"
+                      className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all"
+                      style={{ background: c.inputBg, border: `1px solid ${c.inputBorder}`, color: c.text }}
+                      onFocus={e => (e.currentTarget.style.borderColor = c.inputFocusBorder)}
+                      onBlur={e => (e.currentTarget.style.borderColor = c.inputBorder)}
+                    />
                   </div>
 
                   <button
